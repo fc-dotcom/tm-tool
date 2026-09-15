@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>国际站TM话术【远程邮箱授权版】</title>
+<style>
+*{box-sizing:border-box;font-family:system-ui, sans-serif;margin:0;padding:0}
+body{background:#f4f7fa;padding:30px;max-width:1000px;margin:0 auto}
+h1{font-size:22px;margin-bottom:8px;color:#222}
+.desc{color:#666;margin-bottom:20px;font-size:14px}
+.box{background:#fff;border-radius:12px;padding:24px;box-shadow:0 2px 10px #00000010}
+#textArea{width:100%;min-height:240px;border:1px solid #ddd;padding:16px;font-size:15px;white-space:pre-line;border-radius:8px;resize:vertical}
+.btns{margin-top:16px;display:flex;gap:12px;flex-wrap:wrap}
+button{padding:10px 18px;border:none;border-radius:8px;cursor:pointer;font-size:15px}
+#genBtn{background:#1677ff;color:#fff}
+#copyBtn{background:#36cba7;color:#fff}
+#markSentBtn{background:#27ae60;color:#fff}
+#clearBlackBtn{background:#e74c3c;color:#fff}
+#clearHistoryBtn{background:#9b78ff;color:#fff}
+button:active{opacity:0.85}
+.tip{margin-top:12px;color:#666;font-size:14px;line-height:1.5}
+.history{margin-top:16px;padding:12px;background:#f8f9fa;border-radius:8px;font-size:13px;color:#444;max-height:180px;overflow:auto}
+.blackInfo{margin-top:10px;color:#c0392b;font-size:13px}
+.copyTip{margin-top:8px;color:#27ae60;height:20px;font-size:14px}
+
+/* 登录弹窗样式 */
+.login-wrap{position:fixed;inset:0;background:rgba(0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:999}
+.login-card{background:#fff;padding:28px;border-radius:12px;width:360px}
+.login-card h2{margin:0 0 16px;font-size:20px}
+.login-card input{width:100%;padding:10px 14px;border:1px solid #ddd;border-radius:8px;font-size:16px;margin-bottom:14px}
+.login-card button{width:100%;background:#1677ff;color:#fff;padding:10px;border-radius:8px;border:none;font-size:16px}
+.login-err{color:red;margin-bottom:10px;font-size:14px}
+.hidden{display:none !important;}
+.loading-text{color:#444;margin-bottom:10px}
+</style>
+</head>
+<body>
+
+<!-- 邮箱登录弹窗 -->
+<div class="login-wrap" id="loginWrap">
+    <div class="login-card">
+        <h2>每日授权验证</h2>
+        <div class="loading-text" id="loadingText">正在加载授权列表...</div>
+        <div class="login-err" id="loginErr"></div>
+        <input type="text" id="emailInput" placeholder="请输入今日授权邮箱" disabled>
+        <button id="loginBtn" disabled>进入工具</button>
+    </div>
+</div>
+
+<div class="box" id="toolBox">
+<h1>TM拓客话术 动态生成器（语序随机+黑名单）</h1>
+<div class="desc">模块化随机拼接 + 语序随机调换 + 复制自动加入黑名单，最大化文本差异化</div>
+<textarea id="textArea" readonly>点击【生成差异化话术】</textarea>
+<div class="btns">
+<button id="genBtn">生成差异化话术</button>
+<button id="copyBtn">复制到剪贴板</button>
+<button id="markSentBtn">标记为【已发送】</button>
+<button id="clearBlackBtn">清空黑名单</button>
+<button id="clearHistoryBtn">清空临时历史</button>
+</div>
+<div class="copyTip" id="copyTip"></div>
+<div class="blackInfo">黑名单数量：<span id="blackCount">0</span>（关闭页面数据不会丢失）</div>
+<div class="tip">
+风控要点：点击复制自动加入黑名单，避免重复文本；语序随机打乱句子结构；发送间隔60~120s随机波动，不要顶满平台发送上限。
+</div>
+<div class="history" id="historyBox">
+最近生成记录：
+</div>
+</div>
+
+<script>
+// ============ 在这里替换成你的auth.json远程URL ============
+const AUTH_JSON_URL = "https://xxx/auth.json";
+
+let validEmailList = [];
+
+// ============ 默认词库 ============
+const defaultLib = {
+    greetings: [
+        "Hope you’re doing well","Hi there","Good day","Hope everything goes well",
+        "Hello, hope all’s fine","Hi, hope your week is going well","Greetings",
+        "Hope your business is doing great","Hello there","Hi hope you’re having a good day",
+        "Warm greetings","Hello, hope business is booming","Hey, hope you’re good",
+        "Good morning","Good afternoon"
+    ],
+    purchaseIntent: [
+        "we are planning to order some products","we intend to purchase your goods",
+        "we’re looking to buy some of your items","our team is considering placing an order",
+        "We’re interested in sourcing some of your products","We would like to source goods from your company",
+        "We’re looking to make purchases from you","We have interest in purchasing your merchandise",
+        "Our team wants to inquire about buying your goods","We’re looking into purchasing your product range",
+        "We intend to source merchandise from your factory","We’re considering a trial purchase of your products",
+        "We would like to start with small purchases first","Our company plans to test your items via small orders",
+        "We want to make a trial order of your products","We’re planning to place an order, probably starting small",
+        "We want to test your products in our market first"
+    ],
+    smallBatchQ: [
+        "May we place orders with smaller quantities?","Is it possible to order in smaller batches?",
+        "Do you accept small quantity orders?","May we place small quantity orders?",
+        "wonder if small-batch orders are acceptable","Do you accept low minimum orders?",
+        "Can we place orders with smaller order volumes?","Are small-sized orders available?",
+        "May we proceed with low-volume orders?","Do you accept small trial orders?",
+        "Can we place low-volume trial purchases?","Are smaller trial quantities allowed?",
+        "May we place minimal order runs?","Are small trial quantities supported?",
+        "Is it okay to place orders with low volumes?","Do you allow small volume trial orders?",
+        "Are you able to accept smaller order sizes?","Can we do small orders first?",
+        "Small batches okay?","Want to order small qty. Possible?"
+    ],
+    leadTimeQ: [
+        "What is the lead time?","Could you advise your production lead time?",
+        "What’s your production lead time?","Could you share your current lead time?",
+        "How long will production take?","What is your production turnaround time?",
+        "How soon can you deliver the goods?","What’s your turnaround for production?",
+        "How much time is needed for manufacturing?","What timeline can you offer for production?",
+        "How fast can you finish manufacturing?","Could you tell me your manufacturing lead time?",
+        "How long would it take to produce the goods?","Kindly advise your production schedule.",
+        "What would be your estimated production time?","And how long till it’s ready?",
+        "What’s the lead time roughly?","How long does production usually take?",
+        "Could you let me know your typical lead time?","Lead time?"
+    ],
+    endings: [
+        "Looking forward to your reply!","Waiting for your feedback.","Awaiting your reply.",
+        "Thanks & best regards.","Appreciate your information.","Thank you for your time.",
+        "Your input will be much appreciated.","Waiting eagerly for your reply.","Thanks for your assistance.",
+        "Best wishes.","Many thanks.","Looking forward to hearing your thoughts.","Thanks a lot.",
+        "Awaiting your kind response.","Cheers.","Thanks.","Best,","Thanks in advance.","Thank you.","Regards."
+    ]
+};
+
+const adverbs = ["currently", "roughly", "initially"];
+const lineModes = ["multi", "compact"];
+
+// 工具函数
+function randomPick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function randomBool() { return Math.random() > 0.5; }
+
+// 词库固定使用默认词库
+let lib = JSON.parse(JSON.stringify(defaultLib));
+
+// 黑名单
+let blackList = JSON.parse(localStorage.getItem('tmBlackList') || '[]');
+function saveBlackList() {
+    localStorage.setItem('tmBlackList', JSON.stringify(blackList));
+    document.getElementById('blackCount').innerText = blackList.length;
+}
+saveBlackList();
+
+let historyList = [];
+let currentText = "";
+
+const textDom = document.getElementById('textArea');
+const genBtn = document.getElementById('genBtn');
+const copyBtn = document.getElementById('copyBtn');
+const markSentBtn = document.getElementById('markSentBtn');
+const clearBlackBtn = document.getElementById('clearBlackBtn');
+const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+const historyBox = document.getElementById('historyBox');
+const copyTip = document.getElementById('copyTip');
+
+// 登录元素
+const loginWrap = document.getElementById('loginWrap');
+const emailInput = document.getElementById('emailInput');
+const loginBtn = document.getElementById('loginBtn');
+const loginErr = document.getElementById('loginErr');
+const loadingText = document.getElementById('loadingText');
+const toolBox = document.getElementById('toolBox');
+
+// 获取今日日期字符串（YYYY-MM-DD）
+function getTodayKey(){
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const day = String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${day}`;
+}
+const todayKey = getTodayKey();
+const localAuth = localStorage.getItem('tmToolAuth');
+
+// 先判断本地是否已有今日授权
+if(localAuth && localAuth === todayKey){
+    loginWrap.classList.add('hidden');
+}else{
+    // 联网拉取远程授权json
+    fetch(AUTH_JSON_URL)
+    .then(res=>res.json())
+    .then(data=>{
+        validEmailList = data.todayEmailList.map(e=>e.toLowerCase());
+        loadingText.textContent = "";
+        emailInput.disabled = false;
+        loginBtn.disabled = false;
+    })
+    .catch(err=>{
+        loadingText.textContent = "网络错误，无法获取授权列表，请检查网络";
+    })
+}
+
+// 邮箱登录校验
+loginBtn.onclick = ()=>{
+    const inputVal = emailInput.value.trim().toLowerCase();
+    if(validEmailList.includes(inputVal)){
+        loginWrap.classList.add('hidden');
+        loginErr.textContent = "";
+        // 保存今日授权标记，当天免登录
+        localStorage.setItem('tmToolAuth', todayKey);
+    }else{
+        loginErr.textContent = "邮箱不在今日授权列表，请核对";
+    }
+}
+emailInput.onkeydown = e=>{
+    if(e.key === "Enter") loginBtn.click();
+}
+
+// 生成话术（语序随机 + 黑名单过滤）
+genBtn.onclick = () => {
+    let finalText;
+    let retry = 0;
+    const maxRetry = 300;
+    do {
+        const greet = randomPick(lib.greetings);
+        const purchase = randomPick(lib.purchaseIntent);
+        const smallBatch = randomPick(lib.smallBatchQ);
+        const leadtime = randomPick(lib.leadTimeQ);
+        const ending = randomPick(lib.endings);
+        const lineMode = randomPick(lineModes);
+        const adverbText = randomBool() ? ` ${randomPick(adverbs)}` : "";
+
+        // A功能：语序随机，50%概率交期在前，小批量在后
+        const swapOrder = randomBool();
+        const q1 = swapOrder ? leadtime : smallBatch;
+        const q2 = swapOrder ? smallBatch : leadtime;
+
+        if(lineMode === "multi"){
+            finalText = `${greet}.
+${purchase}${adverbText}.
+${q1}
+${q2}
+${ending}`;
+        }else{
+            finalText = `${greet}. ${purchase}${adverbText}. ${q1} ${q2} ${ending}`;
+        }
+        retry++;
+    } while(blackList.includes(finalText) && retry < maxRetry);
+
+    currentText = finalText;
+    textDom.value = currentText;
+
+    historyList.push(currentText);
+    if(historyList.length > 10) historyList.shift();
+    historyBox.innerText = "最近生成：\n" + historyList.map((t,i)=>`${i+1}. ${t.slice(0,70)}...`).join("\n");
+    copyTip.textContent = "";
+};
+
+// 标记已发送
+markSentBtn.onclick = ()=>{
+    if(!currentText) { copyTip.textContent = "请先生成话术"; setTimeout(()=>copyTip.textContent="",2000); return; }
+    if(!blackList.includes(currentText)){
+        blackList.push(currentText);
+        saveBlackList();
+        copyTip.textContent = "✅ 已加入黑名单";
+        setTimeout(()=>copyTip.textContent="",2000);
+    }else{
+        copyTip.textContent = "这条已经在黑名单内";
+        setTimeout(()=>copyTip.textContent="",2000);
+    }
+}
+
+// 复制：无弹窗，文字提示，复制成功自动加入黑名单
+copyBtn.onclick = async ()=>{
+    if(!currentText) { copyTip.textContent = "请先生成话术"; setTimeout(()=>copyTip.textContent="",2000); return; }
+    try{
+        await navigator.clipboard.writeText(textDom.value);
+        // 复制成功自动加入黑名单
+        if(!blackList.includes(currentText)){
+            blackList.push(currentText);
+            saveBlackList();
+        }
+        copyTip.textContent = "✅ 复制成功，已自动加入黑名单";
+    }catch(e){
+        copyTip.textContent = "❌复制失败，请手动选中复制";
+    }
+    setTimeout(()=>copyTip.textContent="",2000);
+}
+
+// 清空黑名单
+clearBlackBtn.onclick = ()=>{
+    if(confirm("确认清空黑名单？清空后旧话术会重新参与生成")){
+        blackList = [];
+        saveBlackList();
+        copyTip.textContent = "黑名单已清空";
+        setTimeout(()=>copyTip.textContent="",2000);
+    }
+}
+
+// 清空临时历史
+clearHistoryBtn.onclick = ()=>{
+    historyList = [];
+    historyBox.innerText = "最近生成记录：";
+    textDom.value = "";
+    currentText = "";
+    copyTip.textContent = "";
+}
+</script>
+</body>
+</html>
