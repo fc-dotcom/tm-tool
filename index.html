@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>国际站TM话术【远程邮箱授权版】</title>
+<title>国际站TM话术</title>
 <style>
 *{box-sizing:border-box;font-family:system-ui, sans-serif;margin:0;padding:0}
 body{background:#f4f7fa;padding:30px;max-width:1000px;margin:0 auto}
@@ -22,7 +22,6 @@ button:active{opacity:0.85}
 .history{margin-top:16px;padding:12px;background:#f8f9fa;border-radius:8px;font-size:13px;color:#444;max-height:180px;overflow:auto}
 .blackInfo{margin-top:10px;color:#c0392b;font-size:13px}
 .copyTip{margin-top:8px;color:#27ae60;height:20px;font-size:14px}
-
 /* 登录弹窗样式 */
 .login-wrap{position:fixed;inset:0;background:rgba(0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:999}
 .login-card{background:#fff;padding:28px;border-radius:12px;width:360px}
@@ -32,10 +31,10 @@ button:active{opacity:0.85}
 .login-err{color:red;margin-bottom:10px;font-size:14px}
 .hidden{display:none !important;}
 .loading-text{color:#444;margin-bottom:10px}
+.quantity-info{background:#e8f4ff;padding:10px;border-radius:8px;margin-bottom:14px;font-size:14px;color:#1677ff;}
 </style>
 </head>
 <body>
-
 <!-- 邮箱登录弹窗 -->
 <div class="login-wrap" id="loginWrap">
     <div class="login-card">
@@ -46,33 +45,79 @@ button:active{opacity:0.85}
         <button id="loginBtn" disabled>进入工具</button>
     </div>
 </div>
-
 <div class="box" id="toolBox">
-<h1>TM拓客话术 动态生成器（语序随机+黑名单）</h1>
-<div class="desc">模块化随机拼接 + 语序随机调换 + 复制自动加入黑名单，最大化文本差异化</div>
+<h1>TM拓客话术 动态生成器（语序随机）</h1>
+<div class="desc">模块化随机拼接 + 复制自动加入黑名单</div>
+<div class="quantity-info">
+已发送计数：<span id="sendCountText">0</span>｜当前数量区间：<span id="qtyRangeText">60‑90</span>
+</div>
 <textarea id="textArea" readonly>点击【生成差异化话术】</textarea>
 <div class="btns">
 <button id="genBtn">生成差异化话术</button>
 <button id="copyBtn">复制到剪贴板</button>
-<button id="markSentBtn">标记为【已发送】</button>
 <button id="clearBlackBtn">清空黑名单</button>
 <button id="clearHistoryBtn">清空临时历史</button>
 </div>
 <div class="copyTip" id="copyTip"></div>
 <div class="blackInfo">黑名单数量：<span id="blackCount">0</span>（关闭页面数据不会丢失）</div>
 <div class="tip">
-风控要点：点击复制自动加入黑名单，避免重复文本；语序随机打乱句子结构；发送间隔60~120s随机波动，不要顶满平台发送上限。
+风控要点：点击复制自动加入黑名单，避免重复文本；
+<br>数量规则：每标记/复制满10条，采购数量区间自动+10。
 </div>
 <div class="history" id="historyBox">
 最近生成记录：
 </div>
 </div>
-
 <script>
 // ============ 在这里替换成你的auth.json远程URL ============
 const AUTH_JSON_URL = "https://fc-dotcom.github.io/tm-tool/auth.json";
-
 let validEmailList = [];
+let currentLoginEmail = "";
+let checkTimer = null;
+
+// 数量配置（后续可以迁移到config.json远程）
+const quantityConfig = {
+    baseMin: 60,
+    baseMax: 90,
+    step: 10
+};
+
+// 读取本地发送计数
+let sendCount = Number(localStorage.getItem("tmSendCount") || 0);
+
+// ============ 新增：30套数量描述短语库 ============
+const quantityPhrases = [
+    "estimated quantity around {min}‑{max} units",
+    "target volume about {min}‑{max} pcs",
+    "we plan to take roughly {min}‑{max} pieces",
+    "our target quantity would be {min}‑{max} units",
+    "looking at an initial volume of {min}‑{max} units",
+    "we are considering roughly {min}‑{max} pcs for the first order",
+    "the tentative order volume is {min}‑{max} pieces",
+    "we intend to purchase around {min}‑{max} units at first",
+    "our planned trial quantity is {min}‑{max} pcs",
+    "we are aiming for approximately {min}‑{max} units initially",
+    "proposed order size would be {min}‑{max} pieces",
+    "we estimate our first purchase at {min}‑{max} pcs",
+    "the projected quantity for trial is {min}‑{max} units",
+    "we’re thinking of an initial run of {min}‑{max} pieces",
+    "anticipated order volume is about {min}‑{max} units",
+    "we may start with roughly {min}‑{max} pcs",
+    "our preliminary plan is {min}‑{max} units for trial",
+    "target trial quantity sits around {min}‑{max} pieces",
+    "we’re looking to source about {min}‑{max} pcs at the beginning",
+    "the expected volume for this trial order is {min}‑{max} units",
+    "tentatively we want {min}‑{max} pieces for our first purchase",
+    "we plan to start off with {min}‑{max} units",
+    "approximate order quantity will be {min}‑{max} pcs",
+    "our intended trial volume is roughly {min}‑{max} pieces",
+    "we are exploring an initial order of {min}‑{max} units",
+    "we would like to test with around {min}‑{max} pcs",
+    "projected first order quantity: {min}‑{max} pieces",
+    "we’re considering a starting volume of {min}‑{max} units",
+    "the rough estimate for our trial purchase is {min}‑{max} pcs",
+    "we plan to place an initial order of about {min}‑{max} pieces"
+];
 
 // ============ 默认词库 ============
 const defaultLib = {
@@ -97,10 +142,10 @@ const defaultLib = {
     smallBatchQ: [
         "May we place orders with smaller quantities?","Is it possible to order in smaller batches?",
         "Do you accept small quantity orders?","May we place small quantity orders?",
-        "wonder if small-batch orders are acceptable","Do you accept low minimum orders?",
-        "Can we place orders with smaller order volumes?","Are small-sized orders available?",
-        "May we proceed with low-volume orders?","Do you accept small trial orders?",
-        "Can we place low-volume trial purchases?","Are smaller trial quantities allowed?",
+        "wonder if small‑batch orders are acceptable","Do you accept low minimum orders?",
+        "Can we place orders with smaller order volumes?","Are small‑sized orders available?",
+        "May we proceed with low‑volume orders?","Do you accept small trial orders?",
+        "Can we place low‑volume trial purchases?","Are smaller trial quantities allowed?",
         "May we place minimal order runs?","Are small trial quantities supported?",
         "Is it okay to place orders with low volumes?","Do you allow small volume trial orders?",
         "Are you able to accept smaller order sizes?","Can we do small orders first?",
@@ -126,7 +171,6 @@ const defaultLib = {
         "Awaiting your kind response.","Cheers.","Thanks.","Best,","Thanks in advance.","Thank you.","Regards."
     ]
 };
-
 const adverbs = ["currently", "roughly", "initially"];
 const lineModes = ["multi", "compact"];
 
@@ -134,9 +178,36 @@ const lineModes = ["multi", "compact"];
 function randomPick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 function randomBool() { return Math.random() > 0.5; }
 
+// 获取当前数量区间
+function getCurrentQtyRange(){
+    const offset = Math.floor(sendCount / 10) * quantityConfig.step;
+    const min = quantityConfig.baseMin + offset;
+    const max = quantityConfig.baseMax + offset;
+    return {min, max, text:`${min}‑${max}`};
+}
+
+// 随机挑选一条数量句子，替换{min}{max}占位符
+function getRandomQtySentence(min,max){
+    const template = randomPick(quantityPhrases);
+    return template.replaceAll("{min}",min).replaceAll("{max}",max);
+}
+
+// 更新页面数量信息
+function renderQtyInfo(){
+    document.getElementById("sendCountText").innerText = sendCount;
+    const qty = getCurrentQtyRange();
+    document.getElementById("qtyRangeText").innerText = qty.text;
+}
+
+// 增加发送计数（复制/标记已发送调用）
+function incSendCount(){
+    sendCount +=1;
+    localStorage.setItem("tmSendCount", sendCount);
+    renderQtyInfo();
+}
+
 // 词库固定使用默认词库
 let lib = JSON.parse(JSON.stringify(defaultLib));
-
 // 黑名单
 let blackList = JSON.parse(localStorage.getItem('tmBlackList') || '[]');
 function saveBlackList() {
@@ -144,10 +215,10 @@ function saveBlackList() {
     document.getElementById('blackCount').innerText = blackList.length;
 }
 saveBlackList();
+renderQtyInfo();
 
 let historyList = [];
 let currentText = "";
-
 const textDom = document.getElementById('textArea');
 const genBtn = document.getElementById('genBtn');
 const copyBtn = document.getElementById('copyBtn');
@@ -156,7 +227,6 @@ const clearBlackBtn = document.getElementById('clearBlackBtn');
 const clearHistoryBtn = document.getElementById('clearHistoryBtn');
 const historyBox = document.getElementById('historyBox');
 const copyTip = document.getElementById('copyTip');
-
 // 登录元素
 const loginWrap = document.getElementById('loginWrap');
 const emailInput = document.getElementById('emailInput');
@@ -165,7 +235,7 @@ const loginErr = document.getElementById('loginErr');
 const loadingText = document.getElementById('loadingText');
 const toolBox = document.getElementById('toolBox');
 
-// 获取今日日期字符串（YYYY-MM-DD）
+// 获取今日日期字符串（YYYY‑MM‑DD）
 function getTodayKey(){
     const d = new Date();
     const y = d.getFullYear();
@@ -176,12 +246,35 @@ function getTodayKey(){
 const todayKey = getTodayKey();
 const localAuth = localStorage.getItem('tmToolAuth');
 
+// 定时校验授权，60秒一次
+async function startAuthCheck(){
+    checkTimer = setInterval(async ()=>{
+        try {
+            const res = await fetch(`${AUTH_JSON_URL}?t=${Date.now()}`);
+            const data = await res.json();
+            const list = (data.todayEmailList||[]).map(e=>e.toLowerCase());
+            if(!list.includes(currentLoginEmail)){
+                alert("当前授权已失效，请重新登录");
+                clearInterval(checkTimer);
+                localStorage.removeItem("tmToolAuth");
+                location.reload();
+            }
+        }catch(e){
+            console.log("授权校验异常",e);
+        }
+    },60000);
+}
+
+window.addEventListener("beforeunload",()=>{
+    if(checkTimer) clearInterval(checkTimer);
+});
+
 // 先判断本地是否已有今日授权
 if(localAuth && localAuth === todayKey){
     loginWrap.classList.add('hidden');
 }else{
     // 联网拉取远程授权json
-    fetch(AUTH_JSON_URL)
+    fetch(`${AUTH_JSON_URL}?t=${Date.now()}`)
     .then(res=>res.json())
     .then(data=>{
         validEmailList = data.todayEmailList.map(e=>e.toLowerCase());
@@ -200,8 +293,9 @@ loginBtn.onclick = ()=>{
     if(validEmailList.includes(inputVal)){
         loginWrap.classList.add('hidden');
         loginErr.textContent = "";
-        // 保存今日授权标记，当天免登录
+        currentLoginEmail = inputVal;
         localStorage.setItem('tmToolAuth', todayKey);
+        startAuthCheck();
     }else{
         loginErr.textContent = "邮箱不在今日授权列表，请核对";
     }
@@ -210,25 +304,28 @@ emailInput.onkeydown = e=>{
     if(e.key === "Enter") loginBtn.click();
 }
 
-// 生成话术（语序随机 + 黑名单过滤）
+// 生成话术（语序随机 + 黑名单过滤 + 数量嵌入）
 genBtn.onclick = () => {
     let finalText;
     let retry = 0;
     const maxRetry = 300;
+    const qty = getCurrentQtyRange();
+    const qtySentence = getRandomQtySentence(qty.min, qty.max);
+
     do {
         const greet = randomPick(lib.greetings);
-        const purchase = randomPick(lib.purchaseIntent);
+        let purchase = randomPick(lib.purchaseIntent);
+        // 100%插入随机数量短语
+        purchase += `, ${qtySentence}`;
         const smallBatch = randomPick(lib.smallBatchQ);
         const leadtime = randomPick(lib.leadTimeQ);
         const ending = randomPick(lib.endings);
         const lineMode = randomPick(lineModes);
         const adverbText = randomBool() ? ` ${randomPick(adverbs)}` : "";
-
         // A功能：语序随机，50%概率交期在前，小批量在后
         const swapOrder = randomBool();
         const q1 = swapOrder ? leadtime : smallBatch;
         const q2 = swapOrder ? smallBatch : leadtime;
-
         if(lineMode === "multi"){
             finalText = `${greet}.
 ${purchase}${adverbText}.
@@ -243,28 +340,25 @@ ${ending}`;
 
     currentText = finalText;
     textDom.value = currentText;
-
     historyList.push(currentText);
     if(historyList.length > 10) historyList.shift();
     historyBox.innerText = "最近生成：\n" + historyList.map((t,i)=>`${i+1}. ${t.slice(0,70)}...`).join("\n");
     copyTip.textContent = "";
 };
 
-// 标记已发送
+// 标记已发送：计数+1
 markSentBtn.onclick = ()=>{
     if(!currentText) { copyTip.textContent = "请先生成话术"; setTimeout(()=>copyTip.textContent="",2000); return; }
     if(!blackList.includes(currentText)){
         blackList.push(currentText);
         saveBlackList();
-        copyTip.textContent = "✅ 已加入黑名单";
-        setTimeout(()=>copyTip.textContent="",2000);
-    }else{
-        copyTip.textContent = "这条已经在黑名单内";
-        setTimeout(()=>copyTip.textContent="",2000);
     }
+    incSendCount();
+    copyTip.textContent = "✅ 已标记已发送，计数+1";
+    setTimeout(()=>copyTip.textContent="",2000);
 }
 
-// 复制：无弹窗，文字提示，复制成功自动加入黑名单
+// 复制：无弹窗，文字提示，复制成功自动加入黑名单+计数+1
 copyBtn.onclick = async ()=>{
     if(!currentText) { copyTip.textContent = "请先生成话术"; setTimeout(()=>copyTip.textContent="",2000); return; }
     try{
@@ -274,7 +368,8 @@ copyBtn.onclick = async ()=>{
             blackList.push(currentText);
             saveBlackList();
         }
-        copyTip.textContent = "✅ 复制成功，已自动加入黑名单";
+        incSendCount();
+        copyTip.textContent = "✅ 复制成功，已自动加入黑名单，计数+1";
     }catch(e){
         copyTip.textContent = "❌复制失败，请手动选中复制";
     }
