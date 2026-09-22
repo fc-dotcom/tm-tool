@@ -80,17 +80,14 @@ const AUTH_JSON_URL = "https://fc-dotcom.github.io/tm-tool/auth.json";
 let validEmailList = [];
 let currentLoginEmail = "";
 let checkTimer = null;
-
 // 数量配置（后续可以迁移到config.json远程）
 const quantityConfig = {
     baseMin: 60,
     baseMax: 90,
     step: 10
 };
-
 // 读取本地发送计数
 let sendCount = Number(localStorage.getItem("tmSendCount") || 0);
-
 // ============ 30套数量描述短语库 ============
 const quantityPhrases = [
     "estimated quantity around {min}‑{max} units",
@@ -124,7 +121,6 @@ const quantityPhrases = [
     "the rough estimate for our trial purchase is {min}‑{max} pcs",
     "we plan to place an initial order of about {min}‑{max} pieces"
 ];
-
 // ============ 默认词库 ============
 const defaultLib = {
     greetings: [
@@ -179,11 +175,9 @@ const defaultLib = {
 };
 const adverbs = ["currently", "roughly", "initially"];
 const lineModes = ["multi", "compact"];
-
 // 工具函数
 function randomPick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 function randomBool() { return Math.random() > 0.5; }
-
 // 获取当前数量区间
 function getCurrentQtyRange(){
     const offset = Math.floor(sendCount / 10) * quantityConfig.step;
@@ -191,27 +185,23 @@ function getCurrentQtyRange(){
     const max = quantityConfig.baseMax + offset;
     return {min, max, text:`${min}‑${max}`};
 }
-
 // 随机挑选一条数量句子，替换{min}{max}占位符
 function getRandomQtySentence(min,max){
     const template = randomPick(quantityPhrases);
     return template.replaceAll("{min}",min).replaceAll("{max}",max);
 }
-
 // 更新页面数量信息
 function renderQtyInfo(){
     document.getElementById("sendCountText").innerText = sendCount;
     const qty = getCurrentQtyRange();
     document.getElementById("qtyRangeText").innerText = qty.text;
 }
-
 // 增加发送计数（复制调用）
 function incSendCount(){
     sendCount +=1;
     localStorage.setItem("tmSendCount", sendCount);
     renderQtyInfo();
 }
-
 // 词库固定使用默认词库
 let lib = JSON.parse(JSON.stringify(defaultLib));
 // 黑名单
@@ -222,7 +212,6 @@ function saveBlackList() {
 }
 saveBlackList();
 renderQtyInfo();
-
 let historyList = [];
 let currentText = "";
 const textDom = document.getElementById('textArea');
@@ -239,7 +228,6 @@ const loginBtn = document.getElementById('loginBtn');
 const loginErr = document.getElementById('loginErr');
 const loadingText = document.getElementById('loadingText');
 const toolBox = document.getElementById('toolBox');
-
 // 获取今日日期字符串（YYYY‑MM‑DD）
 function getTodayKey(){
     const d = new Date();
@@ -250,12 +238,11 @@ function getTodayKey(){
 }
 const todayKey = getTodayKey();
 const localAuth = localStorage.getItem('tmToolAuth');
-
 // 定时校验授权，60秒一次
 async function startAuthCheck(){
     checkTimer = setInterval(async ()=>{
         try {
-            const res = await fetch(`${AUTH_JSON_URL}?t=${Date.now()}`);
+            const res = await fetch(`${AUTH_JSON_URL}?t=${Date.now()}`, { cache:"no-store" });
             const data = await res.json();
             const list = (data.emails||[]).map(e=>e.toLowerCase());
             if(!list.includes(currentLoginEmail)){
@@ -269,20 +256,18 @@ async function startAuthCheck(){
         }
     },60000);
 }
-
 window.addEventListener("beforeunload",()=>{
     if(checkTimer) clearInterval(checkTimer);
 });
-
 // 先判断本地是否已有今日授权
 if(localAuth && localAuth === todayKey){
     loginWrap.classList.add('hidden');
 }else{
     // 联网拉取远程授权json
-    fetch(`${AUTH_JSON_URL}?t=${Date.now()}`)
+    fetch(`${AUTH_JSON_URL}?t=${Date.now()}`, { cache:"no-store" })
     .then(res=>res.json())
     .then(data=>{
-        validEmailList = data.todayEmailList.map(e=>e.toLowerCase());
+        validEmailList = (data.emails || []).map(e=>e.toLowerCase());
         loadingText.textContent = "";
         emailInput.disabled = false;
         loginBtn.disabled = false;
@@ -291,7 +276,6 @@ if(localAuth && localAuth === todayKey){
         loadingText.textContent = "网络错误，无法获取授权列表，请检查网络";
     })
 }
-
 // 邮箱登录校验
 loginBtn.onclick = ()=>{
     const inputVal = emailInput.value.trim().toLowerCase();
@@ -308,7 +292,6 @@ loginBtn.onclick = ()=>{
 emailInput.onkeydown = e=>{
     if(e.key === "Enter") loginBtn.click();
 }
-
 // 生成话术（语序随机 + 黑名单过滤 + 数量嵌入）
 genBtn.onclick = () => {
     let finalText;
@@ -316,7 +299,6 @@ genBtn.onclick = () => {
     const maxRetry = 300;
     const qty = getCurrentQtyRange();
     const qtySentence = getRandomQtySentence(qty.min, qty.max);
-
     do {
         const greet = randomPick(lib.greetings);
         let purchase = randomPick(lib.purchaseIntent);
@@ -342,7 +324,6 @@ ${ending}`;
         }
         retry++;
     } while(blackList.includes(finalText) && retry < maxRetry);
-
     currentText = finalText;
     textDom.value = currentText;
     historyList.push(currentText);
@@ -350,7 +331,6 @@ ${ending}`;
     historyBox.innerText = "最近生成：\n" + historyList.map((t,i)=>`${i+1}. ${t.slice(0,70)}...`).join("\n");
     copyTip.textContent = "";
 };
-
 // 复制按钮：点击立刻拉黑+计数，兜底取文本框内容，不依赖剪贴板成功
 copyBtn.onclick = async ()=>{
     let useText = currentText || textDom.value.trim();
@@ -359,14 +339,12 @@ copyBtn.onclick = async ()=>{
         setTimeout(()=>copyTip.textContent="",2500);
         return;
     }
-
     // 点击就拉黑计数
     if(!blackList.includes(useText)){
         blackList.push(useText);
         saveBlackList();
     }
     incSendCount();
-
     try{
         await navigator.clipboard.writeText(useText);
         copyTip.textContent = "✅复制成功，已加入黑名单，计数+1";
@@ -376,7 +354,6 @@ copyBtn.onclick = async ()=>{
     }
     setTimeout(()=>copyTip.textContent="",2500);
 }
-
 // 清空黑名单
 clearBlackBtn.onclick = ()=>{
     if(confirm("确认清空黑名单？清空后旧话术会重新参与生成")){
@@ -386,7 +363,6 @@ clearBlackBtn.onclick = ()=>{
         setTimeout(()=>copyTip.textContent="",2000);
     }
 }
-
 // 清空临时历史
 clearHistoryBtn.onclick = ()=>{
     historyList = [];
