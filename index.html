@@ -257,7 +257,7 @@ async function startAuthCheck(){
         try {
             const res = await fetch(`${AUTH_JSON_URL}?t=${Date.now()}`);
             const data = await res.json();
-            const list = (data.todayEmailList||[]).map(e=>e.toLowerCase());
+            const list = (data.emails||[]).map(e=>e.toLowerCase());
             if(!list.includes(currentLoginEmail)){
                 alert("当前授权已失效，请重新登录");
                 clearInterval(checkTimer);
