@@ -2,130 +2,143 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>跟进回复话术生成器</title>
+<title>跟进索要联系方式话术</title>
 <style>
 *{box-sizing:border-box;font-family:system-ui, sans-serif;margin:0;padding:0}
 body{background:#f4f7fa;padding:30px;max-width:1000px;margin:0 auto}
 h1{font-size:22px;margin-bottom:8px;color:#222}
-.desc{color:#555;margin-bottom:20px;font-size:14px}
-.box{background:#fff;border-radius:12px;padding:26px;box-shadow:0 1px 12px rgba(0,0,0,0.08)}
-#textArea{width:100%;min-height:220px;border:1px solid #ddd;padding:16px;font-size:15px;white-space:pre-wrap;border-radius:8px;resize:vertical}
-.btns{margin-top:18px;display:flex;gap:12px;flex-wrap:wrap}
-button{padding:10px 18px;border:none;border-radius:8px;cursor:pointer;font-size:15px}
-#genBtn{background:#1677ff;color:#fff}
-#copyBtn{background:#36cba7;color:#fff}
-#clearBlackBtn{background:#e74c3c;color:#fff}
-button:active{opacity:0.86}
-.tip{margin-top:14px;font-size:14px;color:#666;line-height:1.6}
-.copyTip{margin-top:10px;color:#27ae60;min-height:22px;font-size:14px}
+.desc{color:#666;margin-bottom:20px;font-size:14px}
+.box{background:#fff;border-radius:12px;padding:24px;box-shadow:0 2px 10px #00000010}
+#textArea{width:100%;min-height:240px;border:1px solid #ddd;padding:16px;font-size:15px;white-space:pre-line;border-radius:8px;resize:vertical}
+.btns{margin-top:16px;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+button{padding:10px 18px;border:none;border-radius:8px;cursor:pointer;font-size:15px;color:#fff}
+#genBtn{background:#1677ff;}
+#copyBtn{background:#36cba7;}
+#clearBlackBtn{background:#e74c3c;}
+#clearHistoryBtn{background:#9b78ff;}
+button:active{opacity:0.85}
+.tip{margin-top:12px;color:#666;font-size:14px;line-height:1.5}
+.history{margin-top:16px;padding:12px;background:#f8f9fa;border-radius:8px;font-size:13px;color:#444;max-height:180px;overflow:auto}
 .blackInfo{margin-top:10px;color:#c0392b;font-size:13px}
-/*登录弹窗*/
-.login-wrap{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:999}
+.copyTip{margin-top:8px;color:#27ae60;min-height:22px;font-size:14px}
+/* 登录弹窗样式 */
+.login-wrap{position:fixed;inset:0;background:rgba(0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:999}
 .login-card{background:#fff;padding:28px;border-radius:12px;width:360px}
-.login-card h2{margin:0 0 16px 0;font-size:20px}
+.login-card h2{margin:0 0 16px;font-size:20px}
 .login-card input{width:100%;padding:10px 14px;border:1px solid #ddd;border-radius:8px;font-size:16px;margin-bottom:14px}
-.login-card button{width:100%;background:#1677ff;color:#fff}
+.login-card button{width:100%;background:#1677ff;color:#fff;padding:10px;border-radius:8px;border:none;font-size:16px}
 .login-err{color:red;margin-bottom:10px;font-size:14px}
 .hidden{display:none !important;}
-.loading-text{color:#555;margin-bottom:10px}
+.loading-text{color:#444;margin-bottom:10px}
 </style>
 </head>
 <body>
-
+<!-- 邮箱登录弹窗 -->
 <div class="login-wrap" id="loginWrap">
     <div class="login-card">
         <h2>每日授权验证</h2>
-        <div class="loading-text" id="loadingText">正在加载授权配置...</div>
+        <div class="loading-text" id="loadingText">正在加载授权列表...</div>
         <div class="login-err" id="loginErr"></div>
         <input type="text" id="emailInput" placeholder="请输入今日授权邮箱" disabled>
         <button id="loginBtn" disabled>进入工具</button>
     </div>
 </div>
-
 <div class="box" id="toolBox">
-    <h1>跟进回复话术生成器</h1>
-    <div class="desc">商家回复后使用｜随机生成委婉请求备用沟通途径问句｜复制自动加入黑名单避免重复</div>
-
-    <textarea id="textArea" readonly>点击【生成句子】获取跟进话术</textarea>
-
-    <div class="btns">
-        <button id="genBtn">生成句子</button>
-        <button id="copyBtn">复制到剪贴板</button>
-        <button id="clearBlackBtn">清空黑名单</button>
-    </div>
-
-    <div class="copyTip" id="copyTip"></div>
-    <div class="blackInfo">黑名单数量：<span id="blackCount">0</span></div>
-
-    <div class="tip">
-⚠️使用提示：仅在商家已经回复消息之后发送；禁止初次询盘直接发送；<br>
-若对方没有接住暗示，请转回产品、数量、交期业务话题，不要重复发送同类问句。
-    </div>
+<h1>跟进索要联系方式话术</h1>
+<div class="desc">隐晦索要联系方式｜随机差异化文案｜复制自动加入黑名单</div>
+<textarea id="textArea" readonly>点击【生成差异化话术】</textarea>
+<div class="btns">
+<button id="genBtn">生成差异化话术</button>
+<button id="copyBtn">复制到剪贴板</button>
+<button id="clearBlackBtn">清空黑名单</button>
+<button id="clearHistoryBtn">清空临时历史</button>
 </div>
-
+<div class="copyTip" id="copyTip"></div>
+<div class="blackInfo">黑名单数量：<span id="blackCount">0</span>（关闭页面数据不会丢失）</div>
+<div class="tip">
+风控要点：点击复制自动加入黑名单，避免重复文本；随机句式降低平台限流风险
+</div>
+<div class="history" id="historyBox">
+最近生成记录：
+</div>
+</div>
 <script>
+// 共用auth.json，和index.html同一个远程授权文件
 const AUTH_JSON_URL = "https://fc-dotcom.github.io/tm-tool/auth.json";
 let validEmailList = [];
 let currentLoginEmail = "";
 let checkTimer = null;
 
-// 跟进话术 30条
-const replySentences = [
-  "To lay a solid foundation for our potential business partnership, could you provide an alternate means to reach you should business needs arise? Your insight would be highly valued.",
-  "With our prospective commercial cooperation in mind, could you offer an independent route to reach you whenever circumstances demand? Thank you for giving this your thought.",
-  "In pursuit of more efficient joint‑business work ahead, could you share another viable option to reach you at critical moments? We are looking forward to your perspective.",
-  "To help our intended collaboration run without unnecessary hiccups, could you supply a secondary means to reach you as‑and‑when required? Many thanks for your consideration.",
-  "For the sake of reliable communication throughout our future partnership, could you furnish an extra practical route to reach you on an as‑needed basis? We welcome your comments.",
-  "Aiming for more responsive interaction for our upcoming commercial ties, could you provide another workable option to reach you anytime? Your input means a great deal.",
-  "To facilitate timely coordination within our projected business partnership, could you offer an alternative practical route to reach you when urgency arises? Grateful for your reply.",
-  "Considering the long‑term outlook for our possible collaboration, could you share a separate workable means to reach you amid pressing business scenarios? Please feel free to advise us.",
-  "In order that our planned commercial cooperation may move forward without delay, could you present another feasible option to reach you whenever the occasion arises? We appreciate your time.",
-  "To support fast‑paced coordination for our hopeful business partnership, could you deliver an alternate viable route to reach you for urgent‑related affairs? We await your viewpoint.",
-  "With streamlined joint‑work as our goal for future commerce, could you provide a secondary practical means to reach you whenever business conditions call for it? Thank you for your feedback.",
-  "For the benefit of responsive exchanges across our prospective commercial alliance, could you offer another independent option to reach you on demand? Kindly share your thoughts with us.",
-  "To prevent communication gaps within our intended upcoming partnership, could you share an extra feasible route to reach you should important matters surface? Much thanks for your guidance.",
-  "In furtherance of our likely commercial collaboration, could you supply an alternate workable means to reach you during time‑sensitive business situations? We hold your reply in high regard.",
-  "Looking ahead to coordinated progress for our projected business ties, could you furnish another practical option to reach you whenever real‑time support is needed? We would be glad to hear from you.",
-  "To enable faster handling for matters concerning our future joint‑business work, could you offer a separate viable means to reach you as necessity dictates? Your advice is sincerely appreciated.",
-  "Bearing our hopeful long‑term commercial partnership in view, could you provide an additional workable route to reach you for unexpected business developments? Please let us know your stance.",
-  "In the interests of dependable interaction for our planned collaboration, could you share another alternate option to reach you whenever prompt communication is required? Many thanks for your attention.",
-  "To make certain key business matters flow smoothly for our prospective alliance, could you supply a secondary viable route to reach you amid unforeseen business events? We would value your opinion.",
-  "With effective business alignment as our target for coming cooperation, could you furnish an independent practical means to reach you on occasions of high priority? Kindly offer your perspective.",
-  "To minimize information delays for our anticipated partnership, could you offer another feasible means to reach you when urgent business topics occur? Thank you for your kind input.",
-  "For more agile handling of business events in our projected cooperation, could you provide a separate workable route to reach you as business urgency dictates? We are pleased to receive your view.",
-  "In expectation of stable long‑term commercial links, could you share an alternate practical option to reach you should time‑pressing issues appear? Your comments will be well‑received.",
-  "To ensure important business notifications get through for our intended partnership, could you supply an extra viable means to reach you whenever critical situations emerge? We appreciate your guidance.",
-  "With better business synchronisation in view for our upcoming collaboration, could you furnish another independent option to reach you for time‑critical discussions? Many thanks for your insights.",
-  "To avoid hold‑ups during key phases of our potential cooperation, could you offer a secondary practical route to reach you on an as‑needed basis? Please kindly advise your side.",
-  "For smoother alignment on business details within our prospective partnership, could you provide another workable means to reach you amid sudden business updates? We look forward to hearing your thoughts.",
-  "In support of quick resolution for pressing matters in our planned collaboration, could you share an alternate feasible route to reach you whenever business emergencies pop up? Grateful for your kind feedback.",
-  "Looking toward steady commercial progress between us, could you supply a separate viable option to reach you for high‑priority business conversations? Your standpoint is greatly appreciated.",
-  "To build more reliable interaction channels for our hoped‑for future cooperation, could you furnish another practical means to reach you when business‑critical moments come? We welcome your kind response."
-];
+// ============ 索要联系方式词库 ============
+const lib = {
+    greet: [
+        "Hope you are doing well",
+        "Hi there",
+        "Good day",
+        "Hope everything goes smoothly on your side",
+        "Hello, hope your business is thriving",
+        "Hi, hope you have a nice day",
+        "Greetings",
+        "Hope you’re having a good week"
+    ],
+    request: [
+        "For smoother future cooperation, could you share an alternative way for us to get in touch when needed?",
+        "To facilitate our future communication, would you mind sharing another contact method for urgent matters?",
+        "If we have urgent updates later, can we reach you via another contact channel?",
+        "For quicker communication in the future, could we have another contact of yours?",
+        "We want to keep in touch conveniently, is there another way we can contact you when necessary?",
+        "To avoid missing important messages, could you offer an alternative contact for us?",
+        "For future convenient communication, would it be possible to get another contact method?",
+        "If the message channel has delays sometimes, may I get another contact way from you?"
+    ],
+    extra: [
+        "It will help us respond faster for any urgent updates.",
+        "This helps us avoid missing key information.",
+        "We can send you updates promptly once we have news.",
+        "It’s just for backup communication only.",
+        "This backup contact will only be used for our business discussion."
+    ],
+    ending: [
+        "Looking forward to your reply!",
+        "Waiting for your kind feedback.",
+        "Awaiting your response.",
+        "Thanks & best regards.",
+        "Appreciate your support.",
+        "Hope to hear from you soon.",
+        "Best wishes."
+    ]
+};
+const lineModes = ["multi", "compact"];
+// 工具函数
+function randomPick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function randomBool() { return Math.random() > 0.5; }
 
-// dom
-const loginWrap = document.getElementById("loginWrap");
-const loadingText = document.getElementById("loadingText");
-const emailInput = document.getElementById("emailInput");
-const loginBtn = document.getElementById("loginBtn");
-const loginErr = document.getElementById("loginErr");
-const toolBox = document.getElementById("toolBox");
-const textArea = document.getElementById("textArea");
-const genBtn = document.getElementById("genBtn");
-const copyBtn = document.getElementById("copyBtn");
-const clearBlackBtn = document.getElementById("clearBlackBtn");
-const copyTip = document.getElementById("copyTip");
-const blackCountDom = document.getElementById("blackCount");
-
-let blackList = JSON.parse(localStorage.getItem('replyBlackList') || '[]');
-let currentSentence = "";
-
-function renderBlackCount(){
-    blackCountDom.innerText = blackList.length;
+// 黑名单本地存储
+let blackList = JSON.parse(localStorage.getItem('tmReplyBlackList') || '[]');
+function saveBlackList() {
+    localStorage.setItem('tmReplyBlackList', JSON.stringify(blackList));
+    document.getElementById('blackCount').innerText = blackList.length;
 }
-renderBlackCount();
+saveBlackList();
 
-// 获取今日日期key
+let historyList = [];
+let currentText = "";
+const textDom = document.getElementById('textArea');
+const genBtn = document.getElementById('genBtn');
+const copyBtn = document.getElementById('copyBtn');
+const clearBlackBtn = document.getElementById('clearBlackBtn');
+const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+const historyBox = document.getElementById('historyBox');
+const copyTip = document.getElementById('copyTip');
+
+// 登录元素
+const loginWrap = document.getElementById('loginWrap');
+const emailInput = document.getElementById('emailInput');
+const loginBtn = document.getElementById('loginBtn');
+const loginErr = document.getElementById('loginErr');
+const loadingText = document.getElementById('loadingText');
+
+// 获取今日日期字符串（YYYY‑MM‑DD）
 function getTodayKey(){
     const d = new Date();
     const y = d.getFullYear();
@@ -134,19 +147,19 @@ function getTodayKey(){
     return `${y}-${m}-${day}`;
 }
 const todayKey = getTodayKey();
-const localAuth = localStorage.getItem("replyAuth");
+const localAuth = localStorage.getItem('tmToolAuth');
 
-// 定时踢下线
-async function startCheckAuth(){
+// 定时校验授权，60秒一次
+async function startAuthCheck(){
     checkTimer = setInterval(async ()=>{
-        try{
-            const res = await fetch(`${AUTH_JSON_URL}?t=${Date.now()}`);
-            const cfg = await res.json();
-            const list = (cfg.emails||[]).map(e=>e.toLowerCase().trim());
+        try {
+            const res = await fetch(`${AUTH_JSON_URL}?t=${Date.now()}`, { cache:"no-store" });
+            const data = await res.json();
+            const list = (data.emails||[]).map(e=>e.toLowerCase());
             if(!list.includes(currentLoginEmail)){
-                alert("授权已失效，请重新登录");
+                alert("当前授权已失效，请重新登录");
                 clearInterval(checkTimer);
-                localStorage.removeItem("replyAuth");
+                localStorage.removeItem("tmToolAuth");
                 location.reload();
             }
         }catch(e){
@@ -154,101 +167,120 @@ async function startCheckAuth(){
         }
     },60000);
 }
+window.addEventListener("beforeunload",()=>{
+    if(checkTimer) clearInterval(checkTimer);
+});
 
-// 加载授权列表
-async function loadAuth(){
-    try{
-        const res = await fetch(`${AUTH_JSON_URL}?t=${Date.now()}`);
-        const cfg = await res.json();
-        validEmailList = (cfg.emails||[]).map(e=>e.toLowerCase().trim());
-        loadingText.innerText = "";
+// 授权逻辑
+if(localAuth && localAuth === todayKey){
+    loginWrap.classList.add('hidden');
+}else{
+    fetch(`${AUTH_JSON_URL}?t=${Date.now()}`, { cache:"no-store" })
+    .then(res=>res.json())
+    .then(data=>{
+        validEmailList = (data.emails || []).map(e=>e.toLowerCase());
+        loadingText.textContent = "";
         emailInput.disabled = false;
         loginBtn.disabled = false;
-
-        if(localAuth){
-            const obj = JSON.parse(localAuth);
-            if(obj.key === todayKey && validEmailList.includes(obj.email)){
-                currentLoginEmail = obj.email;
-                loginWrap.classList.add("hidden");
-                startCheckAuth();
-                return;
-            }else{
-                localStorage.removeItem("replyAuth");
-            }
-        }
-    }catch(err){
-        loadingText.innerText = "授权配置加载失败，请刷新页面";
-        console.error(err);
+    })
+    .catch(err=>{
+        loadingText.textContent = "网络错误，无法获取授权列表，请检查网络";
+    })
+}
+loginBtn.onclick = ()=>{
+    const inputVal = emailInput.value.trim().toLowerCase();
+    if(validEmailList.includes(inputVal)){
+        loginWrap.classList.add('hidden');
+        loginErr.textContent = "";
+        currentLoginEmail = inputVal;
+        localStorage.setItem('tmToolAuth', todayKey);
+        startAuthCheck();
+    }else{
+        loginErr.textContent = "邮箱不在今日授权列表，请核对";
     }
 }
-
-loginBtn.onclick = ()=>{
-    const val = emailInput.value.trim().toLowerCase();
-    if(validEmailList.includes(val)){
-        loginErr.innerText = "";
-        currentLoginEmail = val;
-        localStorage.setItem("replyAuth", JSON.stringify({key:todayKey, email:val}));
-        loginWrap.classList.add("hidden");
-        startCheckAuth();
-    }else{
-        loginErr.innerText = "邮箱不在今日授权列表";
-    }
-};
 emailInput.onkeydown = e=>{
     if(e.key === "Enter") loginBtn.click();
-};
+}
 
-// 生成：随机挑选一条不在黑名单的句子
-genBtn.onclick = ()=>{
-    const available = replySentences.filter(s=>!blackList.includes(s));
-    if(available.length <=0){
-        copyTip.textContent = "⚠️全部句子已进入黑名单，请清空黑名单";
-        setTimeout(()=>copyTip.textContent="",2500);
-        textArea.value = "";
-        currentSentence = "";
-        return;
-    }
-    const idx = Math.floor(Math.random() * available.length);
-    currentSentence = available[idx];
-    textArea.value = currentSentence;
+// 生成话术逻辑
+genBtn.onclick = () => {
+    let finalText;
+    let retry = 0;
+    const maxRetry = 300;
+    do {
+        const greet = randomPick(lib.greet);
+        const req = randomPick(lib.request);
+        const extraNote = randomPick(lib.extra);
+        const ending = randomPick(lib.ending);
+        const lineMode = randomPick(lineModes);
+        // 随机调换顺序
+        const swap = randomBool();
+        let partA, partB;
+        if(swap){
+            partA = extraNote;
+            partB = req;
+        }else{
+            partA = req;
+            partB = extraNote;
+        }
+        if(lineMode === "multi"){
+            finalText = `${greet}.
+${partA}
+${partB}
+${ending}`;
+        }else{
+            finalText = `${greet}. ${partA} ${partB} ${ending}`;
+        }
+        retry++;
+    } while(blackList.includes(finalText) && retry < maxRetry);
+
+    currentText = finalText;
+    textDom.value = currentText;
+    historyList.push(currentText);
+    if(historyList.length > 10) historyList.shift();
+    historyBox.innerText = "最近生成：\n" + historyList.map((t,i)=>`${i+1}. ${t.slice(0,70)}...`).join("\n");
     copyTip.textContent = "";
 };
 
-//复制按钮：点复制立刻加入黑名单，不依赖剪贴板成功
+// 复制逻辑
 copyBtn.onclick = async ()=>{
-    const useText = currentSentence || textArea.value.trim();
-    if(!useText){
-        copyTip.textContent = "⚠️请先生成句子！";
+    let useText = currentText || textDom.value.trim();
+    if(!useText) {
+        copyTip.textContent = "⚠️请先生成话术！";
         setTimeout(()=>copyTip.textContent="",2500);
         return;
     }
     if(!blackList.includes(useText)){
         blackList.push(useText);
-        localStorage.setItem("replyBlackList", JSON.stringify(blackList));
-        renderBlackCount();
+        saveBlackList();
     }
-
     try{
         await navigator.clipboard.writeText(useText);
-        copyTip.textContent = "✅复制成功，本条已加入黑名单";
+        copyTip.textContent = "✅复制成功，已加入黑名单";
     }catch(e){
         copyTip.textContent = "⚠️浏览器复制失败，请手动Ctrl+C复制，本条已加入黑名单";
-        console.log("复制异常",e);
     }
     setTimeout(()=>copyTip.textContent="",2500);
-};
+}
 
+// 清空黑名单
 clearBlackBtn.onclick = ()=>{
-    if(confirm("确认清空黑名单？清空后句子可以再次被生成")){
+    if(confirm("确认清空黑名单？清空后旧话术会重新参与生成")){
         blackList = [];
-        localStorage.setItem("replyBlackList", JSON.stringify(blackList));
-        renderBlackCount();
+        saveBlackList();
         copyTip.textContent = "黑名单已清空";
         setTimeout(()=>copyTip.textContent="",2000);
     }
-};
-
-loadAuth();
+}
+// 清空临时历史
+clearHistoryBtn.onclick = ()=>{
+    historyList = [];
+    historyBox.innerText = "最近生成记录：";
+    textDom.value = "";
+    currentText = "";
+    copyTip.textContent = "";
+}
 </script>
 </body>
 </html>
