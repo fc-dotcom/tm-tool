@@ -10,9 +10,10 @@ h1{font-size:22px;margin-bottom:8px;color:#222}
 .desc{color:#666;margin-bottom:20px;font-size:14px}
 .box{background:#fff;border-radius:12px;padding:24px;box-shadow:0 2px 10px #00000010}
 #textArea{width:100%;min-height:240px;border:1px solid #ddd;padding:16px;font-size:15px;white-space:pre-line;border-radius:8px;resize:vertical}
-.btns{margin-top:16px;display:flex;gap:12px;flex-wrap:wrap}
+.btns{margin-top:16px;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
 button{padding:10px 18px;border:none;border-radius:8px;cursor:pointer;font-size:15px}
 #genBtn{background:#1677ff;color:#fff}
+#linkBtn{background:#2563eb;color:#fff}
 #copyBtn{background:#36cba7;color:#fff}
 #clearBlackBtn{background:#e74c3c;color:#fff}
 #clearHistoryBtn{background:#9b78ff;color:#fff}
@@ -53,13 +54,9 @@ button:active{opacity:0.85}
 <textarea id="textArea" readonly>点击【生成差异化话术】</textarea>
 <div class="btns">
 <button id="genBtn">生成差异化话术</button>
-    <div style="margin:20px 0;">
-  <a href="./reply-gen.html" target="_blank">
-    <button style="padding:10px 20px;font-size:16px;background:#2563eb;color:white;border:none;border-radius:6px;cursor:pointer;">
-      👉 打开跟进索要联系方式话术生成器
-    </button>
-  </a>
-</div>
+<a href="./reply-gen.html" target="_blank">
+    <button id="linkBtn">👉 打开跟进索要联系方式话术生成器</button>
+</a>
 <button id="copyBtn">复制到剪贴板</button>
 <button id="clearBlackBtn">清空黑名单</button>
 <button id="clearHistoryBtn">清空临时历史</button>
