@@ -45,10 +45,10 @@ button:active{opacity:0.85}
 </div>
 <div class="box" id="toolBox">
 <h1>跟进索要联系方式话术</h1>
-<div class="desc">隐晦索要联系方式｜随机差异化文案｜复制自动加入黑名单</div>
-<textarea id="textArea" readonly>点击【生成差异化话术】</textarea>
+<div class="desc">商家回复后使用｜模块化随机拼接委婉请求备用沟通途径｜复制自动加入黑名单避免重复</div>
+<textarea id="textArea" readonly>点击【生成话术】获取跟进话术</textarea>
 <div class="btns">
-<button id="genBtn">生成差异化话术</button>
+<button id="genBtn">生成话术</button>
 <button id="copyBtn">复制到剪贴板</button>
 <button id="clearBlackBtn">清空黑名单</button>
 <button id="clearHistoryBtn">清空临时历史</button>
@@ -56,64 +56,130 @@ button:active{opacity:0.85}
 <div class="copyTip" id="copyTip"></div>
 <div class="blackInfo">黑名单数量：<span id="blackCount">0</span>（关闭页面数据不会丢失）</div>
 <div class="tip">
-风控要点：点击复制自动加入黑名单，避免重复文本；随机句式降低平台限流风险
+⚠️使用提示：仅在商家已经回复消息之后发送；禁止初次询盘直接发送；
+<br>若对方没有接住暗示，请转回产品、数量、交期业务话题，不要重复发送同类问句。
 </div>
 <div class="history" id="historyBox">
 最近生成记录：
 </div>
 </div>
 <script>
-// 共用auth.json，和index.html同一个远程授权文件
 const AUTH_JSON_URL = "https://fc-dotcom.github.io/tm-tool/auth.json";
 let validEmailList = [];
 let currentLoginEmail = "";
 let checkTimer = null;
 
-// ============ 索要联系方式词库 ============
+// 拆解自原有30条长句词库，分为【问候、请求主体、目的补充、结尾】
 const lib = {
     greet: [
-        "Hope you are doing well",
-        "Hi there",
-        "Good day",
-        "Hope everything goes smoothly on your side",
-        "Hello, hope your business is thriving",
-        "Hi, hope you have a nice day",
-        "Greetings",
-        "Hope you’re having a good week"
+        "To lay a solid foundation for our potential business partnership",
+        "With our prospective commercial cooperation in mind",
+        "In pursuit of more efficient joint‑business work ahead",
+        "To help our intended collaboration run without unnecessary hiccups",
+        "For the sake of reliable communication throughout our future partnership",
+        "Aiming for more responsive interaction for our upcoming commercial ties",
+        "To facilitate timely coordination within our projected business partnership",
+        "Considering the long‑term outlook for our possible collaboration",
+        "In order that our planned commercial cooperation may move forward without delay",
+        "To support fast‑paced coordination for our hopeful business partnership",
+        "With streamlined joint‑work as our goal for future commerce",
+        "For the benefit of responsive exchanges across our prospective commercial alliance",
+        "To prevent communication gaps within our intended upcoming partnership",
+        "In furtherance of our likely commercial collaboration",
+        "Looking ahead to coordinated progress for our projected business ties",
+        "To enable faster handling for matters concerning our future joint‑business work",
+        "Bearing our hopeful long‑term commercial partnership in view",
+        "In the interests of dependable interaction for our planned collaboration",
+        "To make certain key business matters flow smoothly for our prospective alliance",
+        "With effective business alignment as our target for coming cooperation",
+        "To minimize information delays for our anticipated partnership",
+        "For more agile handling of business events in our projected cooperation",
+        "In expectation of stable long‑term commercial links",
+        "To ensure important business notifications get through for our intended partnership",
+        "With better business synchronisation in view for our upcoming collaboration",
+        "To avoid hold‑ups during key phases of our potential cooperation",
+        "For smoother alignment on business details within our prospective partnership",
+        "In support of quick resolution for pressing matters in our planned collaboration",
+        "Looking toward steady commercial progress between us",
+        "To build more reliable interaction channels for our hoped‑for future cooperation"
     ],
     request: [
-        "For smoother future cooperation, could you share an alternative way for us to get in touch when needed?",
-        "To facilitate our future communication, would you mind sharing another contact method for urgent matters?",
-        "If we have urgent updates later, can we reach you via another contact channel?",
-        "For quicker communication in the future, could we have another contact of yours?",
-        "We want to keep in touch conveniently, is there another way we can contact you when necessary?",
-        "To avoid missing important messages, could you offer an alternative contact for us?",
-        "For future convenient communication, would it be possible to get another contact method?",
-        "If the message channel has delays sometimes, may I get another contact way from you?"
+        "could you provide an alternate means to reach you should business needs arise?",
+        "could you offer an independent route to reach you whenever circumstances demand?",
+        "could you share another viable option to reach you at critical moments?",
+        "could you supply a secondary means to reach you as‑and‑when required?",
+        "could you furnish an extra practical route to reach you on an as‑needed basis?",
+        "could you provide another workable option to reach you anytime?",
+        "could you offer an alternative practical route to reach you when urgency arises?",
+        "could you share a separate workable means to reach you amid pressing business scenarios?",
+        "could you present another feasible option to reach you whenever the occasion arises?",
+        "could you deliver an alternate viable route to reach you for urgent‑related affairs?",
+        "could you provide a secondary practical means to reach you whenever business conditions call for it?",
+        "could you offer another independent option to reach you on demand?",
+        "could you share an extra feasible route to reach you should important matters surface?",
+        "could you supply an alternate workable means to reach you during time‑sensitive business situations?",
+        "could you furnish another practical option to reach you whenever real‑time support is needed?",
+        "could you offer a separate viable means to reach you as necessity dictates?",
+        "could you provide an additional workable route to reach you for unexpected business developments?",
+        "could you share another alternate option to reach you whenever prompt communication is required?",
+        "could you supply a secondary viable route to reach you amid unforeseen business events?",
+        "could you furnish an independent practical means to reach you on occasions of high priority?",
+        "could you offer another feasible means to reach you when urgent business topics occur?",
+        "could you provide a separate workable route to reach you as business urgency dictates?",
+        "could you share an alternate practical option to reach you should time‑pressing issues appear?",
+        "could you supply an extra viable means to reach you whenever critical situations emerge?",
+        "could you furnish another independent option to reach you for time‑critical discussions?",
+        "could you offer a secondary practical route to reach you on an as‑needed basis?",
+        "could you provide another workable means to reach you amid sudden business updates?",
+        "could you share an alternate feasible route to reach you whenever business emergencies pop up?",
+        "could you supply a separate viable option to reach you for high‑priority business conversations?",
+        "could you furnish another practical means to reach you when business‑critical moments come?"
     ],
     extra: [
-        "It will help us respond faster for any urgent updates.",
-        "This helps us avoid missing key information.",
-        "We can send you updates promptly once we have news.",
-        "It’s just for backup communication only.",
-        "This backup contact will only be used for our business discussion."
+        "Your insight would be highly valued.",
+        "Thank you for giving this your thought.",
+        "We are looking forward to your perspective.",
+        "Many thanks for your consideration.",
+        "We welcome your comments.",
+        "Your input means a great deal.",
+        "Grateful for your reply.",
+        "Please feel free to advise us.",
+        "We appreciate your time.",
+        "We await your viewpoint.",
+        "Thank you for your feedback.",
+        "Kindly share your thoughts with us.",
+        "Much thanks for your guidance.",
+        "We hold your reply in high regard.",
+        "We would be glad to hear from you.",
+        "Your advice is sincerely appreciated.",
+        "Please let us know your stance.",
+        "Many thanks for your attention.",
+        "We would value your opinion.",
+        "Kindly offer your perspective.",
+        "Thank you for your kind input.",
+        "We are pleased to receive your view.",
+        "Your comments will be well‑received.",
+        "We appreciate your guidance.",
+        "Many thanks for your insights.",
+        "Please kindly advise your side.",
+        "We look forward to hearing your thoughts.",
+        "Grateful for your kind feedback.",
+        "Your standpoint is greatly appreciated.",
+        "We welcome your kind response."
     ],
     ending: [
-        "Looking forward to your reply!",
-        "Waiting for your kind feedback.",
-        "Awaiting your response.",
-        "Thanks & best regards.",
-        "Appreciate your support.",
-        "Hope to hear from you soon.",
-        "Best wishes."
+        "Thank you.",
+        "Best regards.",
+        "Looking forward to your reply."
     ]
 };
 const lineModes = ["multi", "compact"];
-// 工具函数
+
+//工具函数
 function randomPick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 function randomBool() { return Math.random() > 0.5; }
 
-// 黑名单本地存储
+//黑名单独立存储
 let blackList = JSON.parse(localStorage.getItem('tmReplyBlackList') || '[]');
 function saveBlackList() {
     localStorage.setItem('tmReplyBlackList', JSON.stringify(blackList));
@@ -123,6 +189,8 @@ saveBlackList();
 
 let historyList = [];
 let currentText = "";
+
+//dom
 const textDom = document.getElementById('textArea');
 const genBtn = document.getElementById('genBtn');
 const copyBtn = document.getElementById('copyBtn');
@@ -130,15 +198,13 @@ const clearBlackBtn = document.getElementById('clearBlackBtn');
 const clearHistoryBtn = document.getElementById('clearHistoryBtn');
 const historyBox = document.getElementById('historyBox');
 const copyTip = document.getElementById('copyTip');
-
-// 登录元素
 const loginWrap = document.getElementById('loginWrap');
 const emailInput = document.getElementById('emailInput');
 const loginBtn = document.getElementById('loginBtn');
 const loginErr = document.getElementById('loginErr');
 const loadingText = document.getElementById('loadingText');
 
-// 获取今日日期字符串（YYYY‑MM‑DD）
+//日期key，和index统一
 function getTodayKey(){
     const d = new Date();
     const y = d.getFullYear();
@@ -149,7 +215,7 @@ function getTodayKey(){
 const todayKey = getTodayKey();
 const localAuth = localStorage.getItem('tmToolAuth');
 
-// 定时校验授权，60秒一次
+//定时校验授权 60秒
 async function startAuthCheck(){
     checkTimer = setInterval(async ()=>{
         try {
@@ -171,7 +237,7 @@ window.addEventListener("beforeunload",()=>{
     if(checkTimer) clearInterval(checkTimer);
 });
 
-// 授权逻辑
+//登录初始化
 if(localAuth && localAuth === todayKey){
     loginWrap.classList.add('hidden');
 }else{
@@ -187,6 +253,7 @@ if(localAuth && localAuth === todayKey){
         loadingText.textContent = "网络错误，无法获取授权列表，请检查网络";
     })
 }
+
 loginBtn.onclick = ()=>{
     const inputVal = emailInput.value.trim().toLowerCase();
     if(validEmailList.includes(inputVal)){
@@ -203,34 +270,28 @@ emailInput.onkeydown = e=>{
     if(e.key === "Enter") loginBtn.click();
 }
 
-// 生成话术逻辑
+//生成话术：随机拼接 + 随机调换顺序，对标index逻辑
 genBtn.onclick = () => {
     let finalText;
     let retry = 0;
     const maxRetry = 300;
     do {
-        const greet = randomPick(lib.greet);
-        const req = randomPick(lib.request);
-        const extraNote = randomPick(lib.extra);
-        const ending = randomPick(lib.ending);
+        const partGreet = randomPick(lib.greet);
+        const partReq = randomPick(lib.request);
+        const partExtra = randomPick(lib.extra);
+        const partEnd = randomPick(lib.ending);
         const lineMode = randomPick(lineModes);
-        // 随机调换顺序
-        const swap = randomBool();
-        let partA, partB;
-        if(swap){
-            partA = extraNote;
-            partB = req;
-        }else{
-            partA = req;
-            partB = extraNote;
-        }
+        //随机调换请求与补充说明顺序
+        const swapOrder = randomBool();
+        const s1 = swapOrder ? partExtra : `${partGreet}, ${partReq}`;
+        const s2 = swapOrder ? `${partGreet}, ${partReq}` : partExtra;
+
         if(lineMode === "multi"){
-            finalText = `${greet}.
-${partA}
-${partB}
-${ending}`;
+            finalText = `${s1}
+${s2}
+${partEnd}`;
         }else{
-            finalText = `${greet}. ${partA} ${partB} ${ending}`;
+            finalText = `${s1} ${s2} ${partEnd}`;
         }
         retry++;
     } while(blackList.includes(finalText) && retry < maxRetry);
@@ -243,7 +304,7 @@ ${ending}`;
     copyTip.textContent = "";
 };
 
-// 复制逻辑
+//复制逻辑
 copyBtn.onclick = async ()=>{
     let useText = currentText || textDom.value.trim();
     if(!useText) {
@@ -260,11 +321,12 @@ copyBtn.onclick = async ()=>{
         copyTip.textContent = "✅复制成功，已加入黑名单";
     }catch(e){
         copyTip.textContent = "⚠️浏览器复制失败，请手动Ctrl+C复制，本条已加入黑名单";
+        console.log("复制异常：", e);
     }
     setTimeout(()=>copyTip.textContent="",2500);
 }
 
-// 清空黑名单
+//清空黑名单
 clearBlackBtn.onclick = ()=>{
     if(confirm("确认清空黑名单？清空后旧话术会重新参与生成")){
         blackList = [];
@@ -273,7 +335,7 @@ clearBlackBtn.onclick = ()=>{
         setTimeout(()=>copyTip.textContent="",2000);
     }
 }
-// 清空临时历史
+//清空临时历史
 clearHistoryBtn.onclick = ()=>{
     historyList = [];
     historyBox.innerText = "最近生成记录：";
